@@ -35,17 +35,26 @@ class UserController extends BaseController
         $validator = Validator::make($request->all(), [
             'first_name' => 'required',
             'last_name' => 'required',
-            'email' => 'required|email|unique:users',
             'mobile' => 'required',
-            'username' => 'required|unique:users',
             'password' => 'required',
             'confirm_password' => 'required',
             'sub_email' => ''
         ]);
 
+        //validator unique
+        $validator_unique = Validator::make($request->all(), [
+            'email' => 'required|email|unique:users',
+            'username' => 'required|unique:users',
+        ]);
+
         if ($validator->fails()) {
             $errors = $validator->errors();
             return $this->responseRequestError($errors);
+        }
+
+        if ($validator_unique->fails()) {
+            $errors_u = $validator_unique->errors();
+            return $this->responseSameData($errors_u);
         }
 
         if ($request->password == $request->confirm_password) {
