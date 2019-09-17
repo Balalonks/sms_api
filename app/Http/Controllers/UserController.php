@@ -36,9 +36,13 @@ class UserController extends BaseController
             'first_name' => 'required',
             'last_name' => 'required',
             'mobile' => 'required',
-            'password' => 'required',
-            'confirm_password' => 'required',
             'sub_email' => ''
+        ]);
+
+        //validator password
+        $validator_pass = Validator::make($request->all(), [
+            'password' => 'required|min:8|max:20',
+            'confirm_password' => 'required',
         ]);
 
         //validator unique
@@ -55,6 +59,11 @@ class UserController extends BaseController
         if ($validator_unique->fails()) {
             $errors_u = $validator_unique->errors();
             return $this->responseSameData($errors_u);
+        }
+        //validator password
+        if ($validator_pass->fails()) {
+            $errors_p = $validator_pass->errors();
+            return $this->responsePassnotRule($errors_p);
         }
 
         if ($request->password == $request->confirm_password) {
@@ -398,6 +407,17 @@ class UserController extends BaseController
     protected function responsePassIsWrong($message = 'Bad request', $statusCode = 200)
     {
         return response()->json(['status' => 'wrong_pass', 'error' => $message], $statusCode)
+            ->header('Access-Control-Allow-Origin', '*')
+            ->header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+    }
+    /*
+    |--------------------------------------------------------------------------
+    | response เมื่อ Password น้อยกว่า 8 มากกว่า 20
+    |--------------------------------------------------------------------------
+     */
+    protected function responsePassnotRule($message = 'Bad request', $statusCode = 200)
+    {
+        return response()->json(['status' => 'not_rule', 'error' => $message], $statusCode)
             ->header('Access-Control-Allow-Origin', '*')
             ->header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
     }
