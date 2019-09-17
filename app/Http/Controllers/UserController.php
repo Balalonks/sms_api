@@ -439,7 +439,6 @@ class UserController extends BaseController
         header("Access-Control-Allow-Methods: GET");
         header("Access-Control-Allow-Headers: Origin, Methods, Content-Type");
         return response()->json([
-            'In' => 'MakeData',
             'data' => $request->auth
         ]);
     }
