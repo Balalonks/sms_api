@@ -19,7 +19,7 @@ $router->group(['prefix' => 'api/v1'], function ($router) {
     $router->post('user/new_password', 'UserController@newPassword');
     $router->post('receiveotp', 'UserController@receiveOTP');
     $router->post('activate', 'UserController@ActivateKey');
-    $router->post('againotp', 'UserController@againOTP');
+    $router->post('againactivate', 'UserController@againActivate');
 });
 
 $router->get('/get', 'UserController@decrypt');

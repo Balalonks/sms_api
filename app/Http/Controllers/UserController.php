@@ -171,6 +171,7 @@ class UserController extends BaseController
         }
 
         $user = Users::where('username', $request->username)->first();
+
         if ($user) {
 
             if ($user = Users::where('username', $request->username)->where('is_active', true)->first()) {
@@ -195,10 +196,16 @@ class UserController extends BaseController
                     Mail::send($template_html, $template_data, function ($msg) use ($user) {
                         $msg->subject('ลืมรหัสผ่าน === Forgot');
                         $msg->to([$user->email]);
-                        $msg->from('sutthipongnuanma@gmail.com', 'ClickNext');
+                        $msg->from('dviver100@gmail.com', 'ClickNext');
                     });
 
-                    return $this->responseRequestSuccess($otp->ref);
+                    $info = [
+                        'email' => encrypt($user->email),
+                        'username' => encrypt($user->username),
+                        'ref' => encrypt($otp->ref)
+                    ];
+
+                    return $this->responseRequestSuccess($info);
                 }
             } else {
                 //not active
@@ -213,7 +220,7 @@ class UserController extends BaseController
     | Activate again
     |--------------------------------------------------------------------------
      */
-    public function againOTP(Request $request)
+    public function againActivate(Request $request)
     {
         $template_html = 'mail.activate_user';
 
@@ -228,7 +235,7 @@ class UserController extends BaseController
         Mail::send($template_html, $template_data, function ($msg) use ($user) {
             $msg->subject('ยืนยันตัวตน === Activate');
             $msg->to([$user->email]);
-            $msg->from('sutthipongnuanma@gmail.com', 'ClickNext');
+            $msg->from('dviver100@gmail.com', 'ClickNext');
         });
         return $this->responseRequestSuccess('Success!');
     }
@@ -249,11 +256,11 @@ class UserController extends BaseController
             throw new LogicException($validate->errors()->first());
         }
 
-        $userOTP = Otp::where('otp', $request->otp)->where('ref', $request->ref)->first();
+        $userOTP = Otp::where('otp', $request->otp)->where('ref', decrypt($request->ref))->first();
 
         if ($userOTP) {
 
-            return $this->responseRequestSuccess(encrypt($userOTP->username));
+            return $this->responseRequestSuccess('Success!');
         } else {
             return $this->responseRequestError('error');
         }
