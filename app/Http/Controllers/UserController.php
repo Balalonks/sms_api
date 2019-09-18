@@ -53,17 +53,17 @@ class UserController extends BaseController
 
         if ($validator->fails()) {
             $errors = $validator->errors();
-            return $this->responseRequestError($errors);
+            return $this->responseRequestError('error', $errors);
         }
 
         if ($validator_unique->fails()) {
             $errors_u = $validator_unique->errors();
-            return $this->responseSameData($errors_u);
+            return $this->responseRequestError('same_data', $errors_u);
         }
         //validator password
         if ($validator_pass->fails()) {
             $errors_p = $validator_pass->errors();
-            return $this->responsePassnotRule($errors_p);
+            return $this->responseRequestError('not_rule', $errors_p);
         }
 
         if ($request->password == $request->confirm_password) {
@@ -98,10 +98,10 @@ class UserController extends BaseController
                 });
                 return $this->responseRequestSuccess($user);
             } else {
-                return $this->responseRequestError('Cannot Register');
+                return $this->responseRequestError('error');
             }
         } else {
-            return $this->responsePassnotsame('Password not same!');
+            return $this->responseRequestError('pass_not_same');
         }
     }
     /*
@@ -135,13 +135,13 @@ class UserController extends BaseController
                     $user->save();
                     return $this->responseRequestSuccess($user);
                 } else {
-                    return $this->responseActiveError($user);
+                    return $this->responseRequestError('no_activate', $user);
                 }
             } else {
-                return $this->responsePassIsWrong("Password incorrect!");
+                return $this->responseRequestError('wrong_pass');
             }
         } else {
-            return $this->responseUsernotfound("User not found");
+            return $this->responseRequestError('wrong_pass');
         }
     }
     /*
@@ -192,10 +192,10 @@ class UserController extends BaseController
                 }
             } else {
                 //not active
-                return $this->responseActiveError('', 'not activate');
+                return $this->responseRequestError('no_activate');
             }
         } else {
-            return $this->responseRequestError('Username not found in server');
+            return $this->responseRequestError('error');
         }
     }
     /*
@@ -245,7 +245,7 @@ class UserController extends BaseController
 
             return $this->responseRequestSuccess(encrypt($userOTP->username));
         } else {
-            return $this->responseRequestError('OTP incorrect');
+            return $this->responseRequestError('error');
         }
     }
     /*
@@ -258,12 +258,12 @@ class UserController extends BaseController
         try {
             $validate = Validator::make($request->all(), [
                 'username' => 'required',
-                'password' => 'required',
+                'password' => 'required|min:8|max:20',
                 'confirm_password' => 'required'
             ]);
             if ($validate->fails()) {
                 // throw new LogicException($validate->errors()->first());
-                return $this->responseRequestError('Validation');
+                return $this->responseRequestError('error');
             }
 
             if ($user = Users::where('username', decrypt($request->username))->first()) {
@@ -279,10 +279,10 @@ class UserController extends BaseController
                     }
                 } else {
 
-                    return $this->responsePassnotsame('Password incorrect!!');
+                    return $this->responseRequestError('pass_not_same');
                 }
             } else {
-                return $this->responseRequestError('Error');
+                return $this->responseRequestError('error');
             }
         } catch (DecryptException $e) {
             return 'ไม่พบข้อมูล';
@@ -349,75 +349,9 @@ class UserController extends BaseController
     | response เมื่อข้อมูลมีการผิดพลาด
     |--------------------------------------------------------------------------
      */
-    protected function responseRequestError($message = 'Bad request', $statusCode = 200)
+    protected function responseRequestError($status = '', $ret = '', $message = 'Bad request', $statusCode = 200)
     {
-        return response()->json(['status' => 'error', 'error' => $message], $statusCode)
-            ->header('Access-Control-Allow-Origin', '*')
-            ->header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-    }
-    /*
-    |--------------------------------------------------------------------------
-    | response เมื่อ Account ไม่ได้ Activate
-    |--------------------------------------------------------------------------
-     */
-    protected function responseActiveError($ret = '', $message = '', $statusCode = 200)
-    {
-        return response()->json(['status' => 'no_activate', 'data' => $ret, 'error' => $message], $statusCode)
-            ->header('Access-Control-Allow-Origin', '*')
-            ->header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-    }
-    /*
-    |--------------------------------------------------------------------------
-    | response เมื่อ User not found
-    |--------------------------------------------------------------------------
-     */
-    protected function responseUsernotfound($message = 'Bad request', $statusCode = 200)
-    {
-        return response()->json(['status' => 'not_found_user', 'error' => $message], $statusCode)
-            ->header('Access-Control-Allow-Origin', '*')
-            ->header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-    }
-    /*
-    |--------------------------------------------------------------------------
-    | response เมื่อมีข้อมูลซ้ำ
-    |--------------------------------------------------------------------------
-     */
-    protected function responseSameData($message = 'Bad request', $statusCode = 200)
-    {
-        return response()->json(['status' => 'same_data', 'error' => $message], $statusCode)
-            ->header('Access-Control-Allow-Origin', '*')
-            ->header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-    }
-    /*
-    |--------------------------------------------------------------------------
-    | response เมื่อ Password ไม่เหมือนกัน NewPassword
-    |--------------------------------------------------------------------------
-     */
-    protected function responsePassnotsame($message = 'Bad request', $statusCode = 200)
-    {
-        return response()->json(['status' => 'pass_not_same', 'error' => $message], $statusCode)
-            ->header('Access-Control-Allow-Origin', '*')
-            ->header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-    }
-    /*
-    |--------------------------------------------------------------------------
-    | response เมื่อ Password ผิด
-    |--------------------------------------------------------------------------
-     */
-    protected function responsePassIsWrong($message = 'Bad request', $statusCode = 200)
-    {
-        return response()->json(['status' => 'wrong_pass', 'error' => $message], $statusCode)
-            ->header('Access-Control-Allow-Origin', '*')
-            ->header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-    }
-    /*
-    |--------------------------------------------------------------------------
-    | response เมื่อ Password น้อยกว่า 8 มากกว่า 20
-    |--------------------------------------------------------------------------
-     */
-    protected function responsePassnotRule($message = 'Bad request', $statusCode = 200)
-    {
-        return response()->json(['status' => 'not_rule', 'error' => $message], $statusCode)
+        return response()->json(['status' => $status, 'data' => $ret, 'error' => $message], $statusCode)
             ->header('Access-Control-Allow-Origin', '*')
             ->header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
     }
