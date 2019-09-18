@@ -35,8 +35,12 @@ class UserController extends BaseController
         $validator = Validator::make($request->all(), [
             'first_name' => 'required',
             'last_name' => 'required',
-            'mobile' => 'required',
             'sub_email' => ''
+        ]);
+
+        //validator Phone
+        $validator_phone = Validator::make($request->all(), [
+            'mobile' => 'required|digits_between:9,10',
         ]);
 
         //validator password
@@ -63,7 +67,13 @@ class UserController extends BaseController
         //validator password
         if ($validator_pass->fails()) {
             $errors_p = $validator_pass->errors();
-            return $this->responseRequestError('not_rule', $errors_p);
+            return $this->responseRequestError('not_rule_pass', $errors_p);
+        }
+
+        //validator Phone
+        if ($validator_phone->fails()) {
+            $errors_ph = $validator_phone->errors();
+            return $this->responseRequestError('not_rule_phone', $errors_ph);
         }
 
         if ($request->password == $request->confirm_password) {
@@ -94,7 +104,7 @@ class UserController extends BaseController
                 Mail::send($template_html, $template_data, function ($msg) use ($user) {
                     $msg->subject('ยืนยันตัวตน === Activate');
                     $msg->to([$user->email]);
-                    $msg->from('sutthipongnuanma@gmail.com', 'ClickNext');
+                    $msg->from('dviver100@gmail.com', 'ClickNext');
                 });
                 return $this->responseRequestSuccess($user);
             } else {
