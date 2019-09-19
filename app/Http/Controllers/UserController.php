@@ -137,7 +137,7 @@ class UserController extends BaseController
         }
 
         $user = Users::where('username', $request->username)->first();
-        // dd($user['is_active']);
+
         if ($user) {
 
             if (Hash::check($request->password, $user->password)) {
@@ -179,8 +179,9 @@ class UserController extends BaseController
 
         if ($user) {
 
+            //if actived
             if ($user = Users::where('username', $request->username)->where('is_active', true)->first()) {
-                //if actived
+
                 $template_html = 'mail.forgot_password';
 
                 // Create OTP
@@ -252,11 +253,11 @@ class UserController extends BaseController
     public function receiveOTP(Request $request)
     {
         $validate = Validator::make($request->all(), [
-            // 'username' => 'required',
+
             'ref' => 'required',
             'otp' => 'required'
         ]);
-        // ->where('username', $request->username)
+
         if ($validate->fails()) {
             throw new LogicException($validate->errors()->first());
         }
@@ -284,7 +285,7 @@ class UserController extends BaseController
                 'confirm_password' => 'required'
             ]);
             if ($validate->fails()) {
-                // throw new LogicException($validate->errors()->first());
+
                 return $this->responseRequestError('error');
             }
 
