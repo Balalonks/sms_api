@@ -247,6 +247,47 @@ class UserController extends BaseController
     }
     /*
     |--------------------------------------------------------------------------
+    | OTP again
+    |--------------------------------------------------------------------------
+     */
+    public function againOTP(Request $request)
+    {
+        $template_html = 'mail.forgot_password';
+
+        // Create OTP
+        $genREF = $this->strRandom_ref();
+        $genOTP = $this->strRandom_otp();
+
+        $user = Users::where('username', decrypt($request->username))->first();
+
+        $template_data = [
+
+            'ref' => $genREF,
+            'otp' => $genOTP
+        ];
+        $otp = new Otp();
+        $otp->username = decrypt($request->username);
+        $otp->ref = $genREF;
+        $otp->otp = $genOTP;
+
+        if ($otp->save()) {
+            Mail::send($template_html, $template_data, function ($msg) use ($user) {
+                $msg->subject('ลืมรหัสผ่าน === Forgot');
+                $msg->to([$user->email]);
+                $msg->from('dviver100@gmail.com', 'ClickNext');
+            });
+
+            $info = [
+                'email' => encrypt($user->email),
+                'username' => encrypt($user->username),
+                'ref' => encrypt($otp->ref)
+            ];
+
+            return $this->responseRequestSuccess($info);
+        }
+    }
+    /*
+    |--------------------------------------------------------------------------
     | receiveOTP
     |--------------------------------------------------------------------------
      */
