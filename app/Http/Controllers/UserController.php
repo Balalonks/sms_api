@@ -193,6 +193,7 @@ class UserController extends BaseController
                     'ref' => $genREF,
                     'otp' => $genOTP
                 ];
+                
                 $otp = new Otp();
                 $otp->username = $request->username;
                 $otp->ref = $genREF;
